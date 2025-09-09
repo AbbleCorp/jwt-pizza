@@ -7,8 +7,7 @@ As part of `Deliverable ⓵ Development deployment: JWT Pizza`, start up the app
 | User activity                                       | Frontend component | Backend endpoints | Database SQL |
 | --------------------------------------------------- | ------------------ | ----------------- | ------------ |
 | View home page                                      |      home.tsx      |        none       |     none     |
-| Register new user<br/>(t@jwt.com, pw: test)         |    register.tx     |  [POST]/api/auth  |     `INSERT INTO user (name, email, password) VALUES (?, ?, ?)`
-                                                                                                    `INSERT INTO userRole (userId, role, objectId) VALUES (?, ?, ?)` |
+| Register new user<br/>(t@jwt.com, pw: test)         |    register.tx     |  [POST]/api/auth  |     `INSERT INTO user (name, email, password) VALUES (?, ?, ?)``INSERT INTO userRole (userId, role, objectId) VALUES (?, ?, ?)` |
 | Login new user<br/>(t@jwt.com, pw: test)            |      login.tsx     |   [PUT]/api/auth  |   `SELECT * FROM user WHERE email=?`
                                                                                                   `SELECT * FROM userRole WHERE userId=?`
                                                                                                   `INSERT INTO auth (token, userId) VALUES (?, ?) ON DUPLICATE KEY UPDATE token=token`|
