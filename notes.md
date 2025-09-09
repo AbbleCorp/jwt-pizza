@@ -8,13 +8,16 @@ As part of `Deliverable ⓵ Development deployment: JWT Pizza`, start up the app
 | --------------------------------------------------- | ------------------ | ----------------- | ------------ |
 | View home page                                      |      home.tsx      |        none       |     none     |
 | Register new user<br/>(t@jwt.com, pw: test)         |    register.tx     |  [POST]/api/auth  |     `INSERT INTO user (name, email, password) VALUES (?, ?, ?)`
-`INSERT INTO userRole (userId, role, objectId) VALUES (?, ?, ?)` |
-| Login new user<br/>(t@jwt.com, pw: test)            |                    |                   |              |
+                                                                                                    `INSERT INTO userRole (userId, role, objectId) VALUES (?, ?, ?)` |
+| Login new user<br/>(t@jwt.com, pw: test)            |      login.tsx     |   [PUT]/api/auth  |   `SELECT * FROM user WHERE email=?`
+                                                                                                  `SELECT * FROM userRole WHERE userId=?`
+                                                                                                  `INSERT INTO auth (token, userId) VALUES (?, ?) ON DUPLICATE KEY UPDATE token=token`|
 | Order pizza                                         |                    |                   |              |
 | Verify pizza                                        |                    |                   |              |
 | View profile page                                   |                    |                   |              |
 | View franchise<br/>(as diner)                       |                    |                   |              |
-| Logout                                              |                    |                   |              |
+| Logout                                              |    logout.tsx      |   [DELETE]/api/auth     |   `SELECT userId FROM auth WHERE token=?`
+`DELETE FROM auth WHERE token=?`|
 | View About page                                     |                    |                   |              |
 | View History page                                   |                    |                   |              |
 | Login as franchisee<br/>(f@jwt.com, pw: franchisee) |                    |                   |              |
