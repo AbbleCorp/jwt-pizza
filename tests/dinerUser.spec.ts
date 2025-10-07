@@ -191,6 +191,11 @@ test('login with purchase', async ({ page }) => {
 
   // Check balance
   await expect(page.getByText('0.008')).toBeVisible();
+
+  //verify
+  await page.getByRole('button', { name: 'Verify' }).click();
+  await expect(page.getByRole('heading', { name: 'JWT Pizza' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close' }).click();
 });
 
 test('logout', async ({ page }) => {

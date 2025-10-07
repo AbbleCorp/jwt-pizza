@@ -1,8 +1,8 @@
 import { test, expect, type Page } from 'playwright-test-coverage';
 
 enum Role {
-  Diner = 'Diner',
-  Admin = 'Admin',
+  Diner = 'diner',
+  Admin = 'admin',
 }
 
 type User = {
@@ -151,41 +151,61 @@ test('diner dashboard', async ({ page }) => {
   await expect(page.getByText('Your pizza kitchen')).toBeVisible();
   await expect(page.getByRole('main')).toContainText('Kai Chen');
   await expect(page.getByRole('main')).toContainText('d@jwt.com');
-  await expect(page.getByRole('main')).toContainText('Diner');
+  await expect(page.getByRole('main')).toContainText('diner');
 });
 
-// test('view admin dashboard page', async ({ page }) => {
-//   await basicAdminInit(page);
 
-//   // Go to login first
-//   await page.goto('/login');
-//   await page.getByRole('textbox', { name: 'Email address' }).fill('a@jwt.com');
-//   await page.getByRole('textbox', { name: 'Password' }).fill('a');
-//   await page.getByRole('button', { name: 'Login' }).click();
+test('admin dashboard', async ({ page }) => {
+  const admin = {
+    id: '4',
+    name: 'Admin Chen',
+    email: 'a@jwt.com',
+    password: 'a',
+    roles: [{ role: Role.Admin }],
+  };
 
+  // Mock login endpoint
+  await page.route('**/api/auth', async (route) => {
+    const req = route.request().postDataJSON();
+    if (req.email === admin.email && req.password === admin.password) {
+      await route.fulfill({ json: { user: admin, token: 'admin-token' } });
+    } else {
+      await route.fulfill({ status: 401, json: { error: 'Unauthorized' } });
+    }
+  });
 
-//     // Admin-specific mock for franchises
-//   await page.route(/\/api\/franchise(\?.*)?$/, async (route) => {
-//     await route.fulfill({
-//       json: {
-//         franchises: [
-//           {
-//             id: 2,
-//             name: 'LotaPizza',
-//             stores: [
-//               { id: 4, name: 'Lehi' },
-//               { id: 5, name: 'Springville' },
-//               { id: 6, name: 'American Fork' },
-//             ],
-//           },
-//           { id: 3, name: 'PizzaCorp', stores: [{ id: 7, name: 'Spanish Fork' }] },
-//           { id: 4, name: 'topSpot', stores: [] },
-//         ],
-//       },
-//     });
-//   });
+  // Mock "me" endpoint
+  await page.route('**/api/user/me', async (route) => {
+    await route.fulfill({ json: admin });
+  });
 
-//   await page.getByRole('heading', { name: 'Franchises' }).click();
+  // Mock franchises (admin-specific data)
+  await page.route('**/api/franchise*', async (route) => {
+    await route.fulfill({
+      json: {
+        franchises: [
+          { id: 2, name: 'LotaPizza', stores: [{ id: 4, name: 'Lehi' }] },
+          { id: 3, name: 'PizzaCorp', stores: [] },
+          { id: 4, name: 'topSpot', stores: [] },
+        ],
+      },
+    });
+  });
 
-// });
+  // Navigate to login page
+  await page.goto('/login');
 
+  // Fill and submit admin login form
+  await page.getByRole('textbox', { name: 'Email address' }).fill('a@jwt.com');
+  await page.getByRole('textbox', { name: 'Password' }).fill('a');
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  // Go to admin dashboard
+  await page.goto('/admin-dashboard');
+
+  // Assertions
+  await expect(page.getByRole('heading', { name: 'Franchises' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'LotaPizza' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'PizzaCorp' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'topSpot' })).toBeVisible();
+});
