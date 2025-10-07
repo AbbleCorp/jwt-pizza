@@ -260,5 +260,161 @@ test('view franchise page logged in as franchisee', async ({ page }) => {
 
   // --- Assertions ---
   await expect(page.getByRole('cell', { name: 'SLC' })).toBeVisible();
-  
+
+});
+
+test('create franchise and view it', async ({ page }) => {
+  // --- In-memory store to simulate DB ---
+  let franchises: any[] = [];
+
+  const admin = {
+    id: '4',
+    name: 'Admin Chen',
+    email: 'a@jwt.com',
+    password: 'a',
+    roles: [{ role: Role.Admin }],
+    isRole: (role: Role) => role === Role.Admin,
+  };
+
+  // --- Mock login endpoint ---
+  await page.route('**/api/auth', async (route) => {
+    const data = route.request().postDataJSON();
+    if (data.email === admin.email && data.password === admin.password) {
+      await route.fulfill({ json: { user: admin, token: 'admin-token' } });
+    } else {
+      await route.fulfill({ status: 401, json: { error: 'Unauthorized' } });
+    }
+  });
+
+  // --- Mock "me" endpoint ---
+  await page.route('**/api/user/me', async (route) => {
+    await route.fulfill({ json: admin });
+  });
+
+  // --- Mock GET /api/franchise to list franchises ---
+  await page.route('**/api/franchise*', async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        json: {
+          franchises,
+          more: false,
+        },
+      });
+    }
+  });
+
+  // --- Mock POST /api/franchise to create franchise ---
+  await page.route('**/api/franchise', async (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON();
+      const newFranchise = {
+        ...body,
+        id: franchises.length + 1,
+        stores: [],
+      };
+      franchises.push(newFranchise);
+      await route.fulfill({ json: newFranchise });
+    }
+  });
+
+  // --- Navigate to login page ---
+  await page.goto('/login');
+
+  // Login as admin
+  await page.getByRole('textbox', { name: 'Email address' }).fill(admin.email);
+  await page.getByRole('textbox', { name: 'Password' }).fill(admin.password);
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  // Go to admin dashboard
+  await page.goto('/admin-dashboard');
+
+  // --- Create a new franchise via UI ---
+  await page.getByRole('button', { name: 'Add franchise' }).click();
+  await page.getByRole('textbox', { name: 'Franchise name' }).fill('pizzaPocket');
+  await page.getByRole('textbox', { name: 'Admin email' }).fill('f@jwt.com');
+  await page.getByRole('button', { name: 'Create' }).click();
+
+  // --- Assert that the new franchise appears immediately ---
+  await expect(page.getByRole('cell', { name: 'pizzaPocket' })).toBeVisible();
+
+  // Optional: create another franchise to verify multiple items
+  await page.getByRole('button', { name: 'Add franchise' }).click();
+  await page.getByRole('textbox', { name: 'Franchise name' }).fill('PizzaCorp');
+  await page.getByRole('textbox', { name: 'Admin email' }).fill('admin2@jwt.com');
+  await page.getByRole('button', { name: 'Create' }).click();
+
+  await expect(page.getByRole('cell', { name: 'PizzaCorp' })).toBeVisible();
+});
+
+
+
+test('close franchise', async ({ page }) => {
+  // --- In-memory store ---
+  let franchises = [
+    { id: 1, name: 'pizzaPocket', admins: [{ email: 'f@jwt.com', id: 4, name: 'Pizza Franchisee' }], stores: [] },
+    { id: 2, name: 'PizzaCorp', admins: [{ email: 'admin2@jwt.com', id: 5, name: 'Admin Two' }], stores: [] },
+  ];
+
+  const admin = {
+    id: '4',
+    name: 'Admin Chen',
+    email: 'a@jwt.com',
+    password: 'a',
+    roles: [{ role: Role.Admin }],
+    isRole: (role: Role) => role === Role.Admin,
+  };
+
+  // --- Mock login ---
+  await page.route('**/api/auth', async (route) => {
+    const data = route.request().postDataJSON();
+    if (data.email === admin.email && data.password === admin.password) {
+      await route.fulfill({ json: { user: admin, token: 'admin-token' } });
+    } else {
+      await route.fulfill({ status: 401, json: { error: 'Unauthorized' } });
+    }
+  });
+
+  // --- Mock "me" endpoint ---
+  await page.route('**/api/user/me', async (route) => {
+    await route.fulfill({ json: admin });
+  });
+
+  // --- Mock GET franchises ---
+  await page.route('**/api/franchise*', async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({ json: { franchises, more: false } });
+    }
+  });
+
+  // --- Mock DELETE franchise ---
+  await page.route('**/api/franchise/*', async (route) => {
+    if (route.request().method() === 'DELETE') {
+      const urlParts = route.request().url().split('/');
+      const idToDelete = Number(urlParts[urlParts.length - 1]);
+      franchises = franchises.filter((f) => f.id !== idToDelete);
+      await route.fulfill({ json: { message: 'franchise deleted' } });
+    }
+  });
+
+  // --- Navigate and login ---
+  await page.goto('/login');
+  await page.getByRole('textbox', { name: 'Email address' }).fill(admin.email);
+  await page.getByRole('textbox', { name: 'Password' }).fill(admin.password);
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  // Go to admin dashboard
+  await page.goto('/admin-dashboard');
+
+  // Assert initial franchises are visible
+  await expect(page.getByRole('cell', { name: 'pizzaPocket' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'PizzaCorp' })).toBeVisible();
+
+  // --- Close a franchise ---
+  await page.getByRole('button', { name: 'Close ' }).first().click();
+  await page.getByRole('button', { name: 'Close' }).click();
+  // Optionally wait for any UI update
+  await page.waitForTimeout(100); // or wait for network request if needed
+
+  // Assert pizzaPocket is removed, PizzaCorp still visible
+  await expect(page.getByRole('cell', { name: 'PizzaCorp' })).toBeVisible();
 });

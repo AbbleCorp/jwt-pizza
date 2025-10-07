@@ -241,3 +241,76 @@ test('register new user', async ({ page }) => {
   
 });
 
+
+// test('create store as franchisee', async ({ page }) => {
+//   const franchisee = {
+//     id: '4',
+//     name: 'Pizza Franchisee',
+//     email: 'f@jwt.com',
+//     password: 'a',
+//     roles: [{ role: 'franchisee' }],
+//   };
+
+//   // --- Mock login endpoint ---
+//   await page.route('**/api/auth', async (route) => {
+//     const data = route.request().postDataJSON();
+//     if (data.email === franchisee.email && data.password === franchisee.password) {
+//       await route.fulfill({ status: 200, json: { user: franchisee, token: 'franchisee-token' } });
+//     } else {
+//       await route.fulfill({ status: 401, json: { error: 'Unauthorized' } });
+//     }
+//   });
+
+//   // --- Mock "me" endpoint ---
+//   await page.route('**/api/user/me', async (route) => {
+//     await route.fulfill({ status: 200, json: franchisee });
+//   });
+
+//   // --- Mock GET franchise for this user ---
+//   await page.route(`**/api/franchise/${franchisee.id}`, async (route) => {
+//     await route.fulfill({
+//       status: 200,
+//       json: [
+//         {
+//           id: 2,
+//           name: 'pizzaPocket',
+//           admins: [{ id: franchisee.id, name: franchisee.name, email: franchisee.email }],
+//           stores: [{ id: 2, name: 'SLC', totalRevenue: 0 }],
+//         },
+//       ],
+//     });
+//   });
+
+//   // --- Mock create store endpoint ---
+//   await page.route(/\/api\/franchise\/\d+\/store$/, async (route) => {
+//     if (route.request().method() === 'POST') {
+//       const req = route.request().postDataJSON();
+//       const res = { id: 5, name: req.name, totalRevenue: 0 };
+//       await route.fulfill({ status: 201, json: res });
+//     }
+//   });
+
+//   // --- Navigate and log in ---
+//   await page.goto('/login');
+//   await page.getByRole('textbox', { name: 'Email address' }).fill(franchisee.email);
+//   await page.getByRole('textbox', { name: 'Password' }).fill(franchisee.password);
+//   await page.getByRole('button', { name: 'Login' }).click();
+
+//   // --- Go to franchise dashboard ---
+//   await page.getByLabel('Global').getByRole('link', { name: 'Franchise' }).click();
+
+//   // --- Open create store form ---
+//   await page.getByRole('button', { name: 'Create store' }).click();
+//   await page.getByRole('textbox', { name: 'store name' }).fill('newStore');
+
+//   // --- Click create and wait for POST to complete ---
+//   await Promise.all([
+//     page.waitForResponse(/\/api\/franchise\/\d+\/store$/),
+//     page.getByRole('button', { name: 'Create' }).click(),
+//   ]);
+
+//   // --- Assert new store appears in table ---
+//   await expect(page.locator('table >> text=newStore')).toBeVisible();
+// });
+
+
