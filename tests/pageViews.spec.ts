@@ -209,3 +209,56 @@ test('admin dashboard', async ({ page }) => {
   await expect(page.getByRole('cell', { name: 'PizzaCorp' })).toBeVisible();
   await expect(page.getByRole('cell', { name: 'topSpot' })).toBeVisible();
 });
+
+test('view franchise page logged in as franchisee', async ({ page }) => {
+  // --- Mock the logged-in franchisee ---
+  const franchisee = {
+    id: '4', // matches the userId in the API path
+    name: 'Pizza Franchisee',
+    email: 'f@jwt.com',
+    password: 'a',
+    roles: [{ role: 'franchisee' }],
+  };
+
+  // Mock login endpoint
+  await page.route('**/api/auth', async (route) => {
+    const data = route.request().postDataJSON();
+    if (data.email === franchisee.email && data.password === franchisee.password) {
+      await route.fulfill({ json: { user: franchisee, token: 'franchisee-token' } });
+    } else {
+      await route.fulfill({ status: 401, json: { error: 'Unauthorized' } });
+    }
+  });
+
+  // Mock "me" endpoint
+  await page.route('**/api/user/me', async (route) => {
+    await route.fulfill({ json: franchisee });
+  });
+
+  // Mock the franchise endpoint for this specific user
+  await page.route(`**/api/franchise/${franchisee.id}`, async (route) => {
+    await route.fulfill({
+      json: [
+        {
+          id: 2,
+          name: 'pizzaPocket',
+          admins: [{ id: 4, name: 'Pizza Franchisee', email: 'f@jwt.com' }],
+          stores: [{ id: 4, name: 'SLC', totalRevenue: 0 }],
+        },
+      ],
+    });
+  });
+
+  // --- Navigate and log in ---
+  await page.goto('/login');
+  await page.getByRole('textbox', { name: 'Email address' }).fill(franchisee.email);
+  await page.getByRole('textbox', { name: 'Password' }).fill(franchisee.password);
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  // Go to franchise dashboard
+  await page.getByLabel('Global').getByRole('link', { name: 'Franchise' }).click();
+
+  // --- Assertions ---
+  await expect(page.getByRole('cell', { name: 'SLC' })).toBeVisible();
+  
+});
