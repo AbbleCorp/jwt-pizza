@@ -85,6 +85,83 @@ async function mockUser(page: Page, user: User) {
 
 // ----------------- Tests -----------------
 
+test('admin can delete a user', async ({ page }) => {
+  // In-memory mock user list
+  let users: User[] = [
+    {
+      id: '5',
+      name: 'Test User',
+      email: 'test@jwt.com',
+      password: 'test',
+      roles: [{ role: Role.Diner }],
+    },
+  ];
+
+  await basicAdminInit(page);
+
+  // --- Mock the GET /api/user endpoint ---
+  await page.route('**/api/user**', async (route) => {
+    const url = route.request().url();
+
+    // Always return current user list
+    if (url.includes('page=1') || !url.includes('page=')) {
+      await route.fulfill({
+        json: {
+          users,
+          more: false,
+        },
+      });
+      return;
+    }
+
+    // Default fallback
+    await route.continue();
+  });
+
+  // --- Mock the DELETE /api/user/:id endpoint ---
+  await page.route(/\/api\/user\/\d+$/, async (route) => {
+    if (route.request().method() === 'DELETE') {
+      const url = route.request().url();
+      const idToDelete = url.split('/').pop();
+
+      // Remove user from in-memory list
+      users = users.filter((u) => u.id !== idToDelete);
+
+      // Return proper 204 No Content response
+      await route.fulfill({
+        status: 204,
+        body: '',
+      });
+      return;
+    }
+
+    await route.continue();
+  });
+
+  // --- Login as admin ---
+  await page.getByRole('link', { name: 'Login' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).fill('a@jwt.com');
+  await page.getByRole('textbox', { name: 'Password' }).fill('a');
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  // --- Navigate to Admin Dashboard ---
+  await page.getByRole('link', { name: 'Admin' }).click();
+
+  // Verify test user is visible before deletion
+  await expect(page.getByText('Test User')).toBeVisible();
+  await expect(page.getByText('test@jwt.com')).toBeVisible();
+
+  // --- Delete user ---
+  await page.getByRole('button', { name: 'Delete' }).click();
+
+  // Wait for frontend to refresh user list after delete
+  await page.waitForTimeout(200);
+
+  // --- Verify user is gone ---
+  await expect(page.getByText('Test User')).toHaveCount(0);
+  await expect(page.getByText('test@jwt.com')).toHaveCount(0);
+});
+
 test('view about page, not logged in', async ({ page }) => {
   await page.goto('/about');
   await expect(page.getByText('The secret sauce')).toBeVisible();
@@ -418,3 +495,5 @@ test('close franchise', async ({ page }) => {
   // Assert pizzaPocket is removed, PizzaCorp still visible
   await expect(page.getByRole('cell', { name: 'PizzaCorp' })).toBeVisible();
 });
+
+

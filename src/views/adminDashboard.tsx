@@ -15,13 +15,20 @@ export default function AdminDashboard(props: Props) {
   const navigate = useNavigate();
   const [franchiseList, setFranchiseList] = React.useState<FranchiseList>({ franchises: [], more: false });
   const [franchisePage, setFranchisePage] = React.useState(0);
+  const [userList, setUserList] = React.useState<User[]>([]);
+  const [userPage, setUserPage] = React.useState(1);
+  const [hasMoreUsers, setHasMoreUsers] = React.useState(false);
   const filterFranchiseRef = React.useRef<HTMLInputElement>(null);
+  const filterUserRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     (async () => {
       setFranchiseList(await pizzaService.getFranchises(franchisePage, 3, '*'));
+      const usersResponse = await pizzaService.getUsers(userPage, 10, '*');
+      setUserList(usersResponse.users);
+      setHasMoreUsers(usersResponse.more);
     })();
-  }, [props.user, franchisePage]);
+  }, [props.user, franchisePage, userPage]);
 
   function createFranchise() {
     navigate('/admin-dashboard/create-franchise');
@@ -44,6 +51,98 @@ export default function AdminDashboard(props: Props) {
     response = (
       <View title="Mama Ricci's kitchen">
         <div className="text-start py-8 px-4 sm:px-6 lg:px-8">
+          <h3 className="text-neutral-100 text-xl mb-4">Users</h3>
+          <div className="bg-neutral-100 overflow-clip my-4">
+            <div className="flex flex-col">
+              <div className="-m-1.5 overflow-x-auto">
+                <div className="p-1.5 min-w-full inline-block align-middle">
+                  <div className="overflow-hidden">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="uppercase text-neutral-100 bg-slate-400 border-b-2 border-gray-500">
+                        <tr>
+                          {['Name', 'Email', 'Role', 'Action'].map((header) => (
+                            <th key={header} scope="col" className="px-6 py-3 text-center text-xs font-medium">
+                              {header}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {userList.map((user) => (
+                          <tr key={user.id} className="bg-neutral-100">
+                            <td className="text-start px-6 py-2 whitespace-nowrap text-sm text-gray-800">{user.name}</td>
+                            <td className="text-start px-6 py-2 whitespace-nowrap text-sm text-gray-800">{user.email}</td>
+                            <td className="text-start px-6 py-2 whitespace-nowrap text-sm text-gray-800">
+                              {user.roles?.map(r => r.role).join(', ')}
+                            </td>
+                            <td className="px-6 py-2 whitespace-nowrap text-end text-sm font-medium">
+                              <button
+                                type="button"
+                                className="px-2 py-1 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-1 border-orange-400 text-orange-400 hover:border-orange-800 hover:text-orange-800"
+                                onClick={async () => {
+                                  if (user.id) {
+                                    await pizzaService.deleteUser({ id: user.id });
+                                    // Refresh user list
+                                    const usersResponse = await pizzaService.getUsers(userPage, 10, filterUserRef.current?.value || '*');
+                                    setUserList(usersResponse.users);
+                                    setHasMoreUsers(usersResponse.more);
+                                  }
+                                }}
+                              >
+                                <TrashIcon />
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td className="px-1 py-1" colSpan={2}>
+                            <input
+                              type="text"
+                              ref={filterUserRef}
+                              name="filterUser"
+                              placeholder="Filter users"
+                              className="px-2 py-1 text-sm border border-gray-300 rounded-lg"
+                            />
+                            <button
+                              type="button"
+                              className="ml-2 px-2 py-1 text-sm font-semibold rounded-lg border border-orange-400 text-orange-400 hover:border-orange-800 hover:text-orange-800"
+                              onClick={async () => {
+                                const usersResponse = await pizzaService.getUsers(userPage, 10, `*${filterUserRef.current?.value}*`);
+                                setUserList(usersResponse.users);
+                                setHasMoreUsers(usersResponse.more);
+                              }}
+                            >
+                              Search
+                            </button>
+                          </td>
+                          <td colSpan={2} className="text-end text-sm font-medium">
+                            <button
+                              className="w-12 p-1 text-sm font-semibold rounded-lg border border-transparent bg-white text-grey border-grey m-1 hover:bg-orange-200 disabled:bg-neutral-300"
+                              onClick={() => setUserPage(userPage - 1)}
+                              disabled={userPage <= 1}
+                            >
+                              «
+                            </button>
+                            <button
+                              className="w-12 p-1 text-sm font-semibold rounded-lg border border-transparent bg-white text-grey border-grey m-1 hover:bg-orange-200 disabled:bg-neutral-300"
+                              onClick={() => setUserPage(userPage + 1)}
+                              disabled={!hasMoreUsers}
+                            >
+                              »
+                            </button>
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <h3 className="text-neutral-100 text-xl">Franchises</h3>
           <div className="bg-neutral-100 overflow-clip my-4">
             <div className="flex flex-col">

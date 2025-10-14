@@ -29,11 +29,25 @@ class HttpPizzaService implements PizzaService {
         }
 
         const r = await fetch(path, options);
-        const j = await r.json();
+        
         if (r.ok) {
-          resolve(j);
+          // Check if there's any content before trying to parse JSON
+          const contentType = r.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const j = await r.json();
+            resolve(j);
+          } else {
+            // For empty responses (like DELETE operations)
+            resolve(null);
+          }
         } else {
-          reject({ code: r.status, message: j.message });
+          // Try to parse error message if available
+          try {
+            const j = await r.json();
+            reject({ code: r.status, message: j.message });
+          } catch {
+            reject({ code: r.status, message: r.statusText });
+          }
         }
       } catch (e: any) {
         reject({ code: 500, message: e.message });
@@ -74,6 +88,15 @@ class HttpPizzaService implements PizzaService {
     const { user, token } = await this.callEndpoint(`/api/user/${updatedUser.id}`, 'PUT', updatedUser);
     localStorage.setItem('token', token);
     return Promise.resolve(user);
+  }
+
+  async deleteUser(user: User): Promise<void> {
+    const result = await this.callEndpoint(`/api/user/${user.id}`, 'DELETE');
+    return Promise.resolve(result);
+  }
+
+  async getUsers(page: number, limit: number, nameFilter: string): Promise<{ users: User[], more: boolean }> {
+    return this.callEndpoint(`/api/user?page=${page}&limit=${limit}&name=${nameFilter}`);
   }
 
   async getMenu(): Promise<Menu> {
