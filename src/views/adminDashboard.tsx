@@ -147,15 +147,72 @@ export default function AdminDashboard(props: Props) {
           </div>
         </div>
 
-        {/* Franchises Table (unchanged) */}
-        <h3 className="text-neutral-100 text-xl">Franchises</h3>
+        {/* Franchises Table */}
+        <h3 className="text-neutral-100 text-xl mb-4">Franchises</h3>
         <div className="bg-neutral-100 overflow-clip my-4">
-          {/* ... franchise table code unchanged ... */}
+          <div className="flex flex-col">
+            <div className="-m-1.5 overflow-x-auto">
+              <div className="p-1.5 min-w-full inline-block align-middle">
+                <div className="">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="uppercase text-neutral-100 bg-slate-400 border-b-2 border-gray-500">
+                      <tr>
+                        {['Name', 'Admins', 'Stores', 'Action'].map((header) => (
+                          <th key={header} scope="col" className="px-6 py-3 text-center text-xs font-medium">{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {franchiseList.franchises.map((franchise) => (
+                        <tr key={franchise.id} className="bg-neutral-100">
+                          <td className="text-start px-6 py-2 whitespace-nowrap text-sm text-gray-800">{franchise.name}</td>
+                          <td className="text-start px-6 py-2 whitespace-nowrap text-sm text-gray-800">
+                            {franchise.admins?.map(a => a.name).join(', ')}
+                          </td>
+                          <td className="text-start px-6 py-2 whitespace-nowrap text-sm text-gray-800">
+                            {franchise.stores?.map(s => s.name).join(', ')}
+                          </td>
+                          <td className="px-6 py-2 whitespace-nowrap text-end text-sm font-medium">
+                            <button
+                              type="button"
+                              className="px-2 py-1 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-1 border-orange-400 text-orange-400 hover:border-orange-800 hover:text-orange-800"
+                              onClick={() => closeFranchise(franchise)}
+                            >
+                              Close
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td className="px-1 py-1" colSpan={4}>
+                          <input
+                            type="text"
+                            ref={filterFranchiseRef}
+                            placeholder="Filter franchises"
+                            className="px-2 py-1 text-sm border border-gray-300 rounded-lg"
+                          />
+                          <button
+                            type="button"
+                            className="ml-2 px-2 py-1 text-sm font-semibold rounded-lg border border-orange-400 text-orange-400 hover:border-orange-800 hover:text-orange-800"
+                            onClick={filterFranchises}
+                          >
+                            Search
+                          </button>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <Button className="w-36 text-xs sm:text-sm sm:w-64" title="Add Franchise" onPress={createFranchise} />
+        <div className="mt-4">
+          <Button className="w-36 text-xs sm:text-sm sm:w-64" title="Add Franchise" onPress={createFranchise} />
+        </div>
       </div>
     </View>
   );
