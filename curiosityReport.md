@@ -152,3 +152,19 @@ Containers are often compared to virtual machines. On a high level, they are pre
 
 ## Conclusion
 Docker containers are a widespread technology that allows us to deploy applications easily and consistently on various hosts. It isolates the application from the OS and runs it on a bare-bones virtual OS. This ensures that no matter where you run the application, it's running with the same environment and configurations that you define. This makes it a lot easier to run applications on various hosts. I really enjoyed diving under the hood of containers and seeing what kernel features make this technology possible. There's more to learn in terms of containers, but I think I now feel more comfortable utilizing containers myself.
+
+
+### References
+[Wikipedia](https://en.wikipedia.org/wiki/Docker_(software))
+
+[Docker Website](https://docs.docker.com/get-started/docker-overview/)
+
+[LXC vs. Docker on Docker website](https://www.docker.com/blog/lxc-vs-docker/)
+
+[The Docker Story on Medium](https://medium.com/@fred.j/docker-in-depth-first-part-history-499682db0c12)
+
+[How does Docker really work under the hood? on Medium](https://medium.com/@kuninoto/how-does-docker-really-work-under-the-hood-a-dive-into-dockers-internals-2fef63f7c9bb)
+
+[Docker explanation on Reddit](https://www.reddit.com/r/docker/comments/keq9el/please_someone_explain_docker_to_me_like_i_am_an/)
+
+[What's the Difference Between Docker and a VM? on AWS](https://aws.amazon.com/compare/the-difference-between-docker-vm/)
