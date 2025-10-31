@@ -50,15 +50,26 @@ Containers only include:
 Since containers are designed to be flexible and minimal, they only require the bare-bones. They share the
 host OS kernel, which saves a lot of resources.
 
-
-
+### Container Standardization
 Docker started out as dotCloud, a Paas (Platform as a Service) company. While they weren't very successful
-there, their Docker tool that they had developed became their new focus. In 2013 they made Docker their main 
-product. They wanted a robust, multiplatform application for building, deploying, and managing containers.
+there, their Docker tool that they had developed became their new focus. In 2013 they made Docker their main product. They wanted a robust, multiplatform application for building, deploying, and managing containers.They got together with Google and the Linux Foundation to start the Open Container Initiative (OCI). Together, they defined the following standards for containers:
+* Image Specification - how container images (container blueprints) are created
+* Runtime Specification - how containers are executed and managed throughout their lifecycle
+* Distribution Specification - how container images are shared and distributed
+
+With these standards in place, containers became a lot more useful to developers.
 
 
 ## How do Docker Containers work?
+Docker uses a client-server architecture, and consists of three main components:
+1. Software: the Docker daemon, dockerd
+2. Objects: entities used to assemble applications, of which there are three main classes:
+     * container: a standardized encapsulated environment that runs applications
+     * image: a read-only template used to build containers, used to store and ship applications
+     * service: allows containers to be scaled across multiple Docker daemons
+3. Registries: a repository for Docker images. Docker clients connect to registries to download or upload images for use.
 
+### Overview
 
 ## Docker Containers vs Virtual Machines
 
