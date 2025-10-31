@@ -69,6 +69,29 @@ Docker uses a client-server architecture, and consists of three main components:
      * service: allows containers to be scaled across multiple Docker daemons
 3. Registries: a repository for Docker images. Docker clients connect to registries to download or upload images for use.
 
+The Docker Client, a command-line interface, is used to interact with the Docker daemon.
+
+To build a docker container:
+1. Define the application environment: Create a Dockerfile that specifies the base image, copies your application code, installs dependencies, and defines the command to run your application. This also specifies the Linux distribution that will run on the container.
+
+An example Dockerfile from Wikipedia:
+```
+ARG CODE_VERSION=latest
+FROM ubuntu:${CODE_VERSION}
+COPY ./examplefile.txt /examplefile.txt
+ENV MY_ENV_VARIABLE="example_value"
+RUN apt-get update
+
+# Mount a directory from the Docker volume
+# Note: This is usually specified in the 'docker run' command.
+VOLUME ["/myvolume"]
+
+# Expose a port (22 for SSH)
+EXPOSE 22
+```
+
+2. Build the image: Use the Docker client to execute docker build ,
+
 ### Overview
 
 ## Docker Containers vs Virtual Machines
