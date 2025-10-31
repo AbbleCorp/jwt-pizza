@@ -151,4 +151,4 @@ Containers are often compared to virtual machines. On a high level, they are pre
 
 
 ## Conclusion
-Docker containers are a widespread technology that allows us to deploy applications easily and consistently on various hosts. It isolates the application from the OS and runs it on a bare-bones virtual OS. This ensures that no matter where you run the application, it's running with the same environment and configurations that you define. While there's still more that we could dive into with Docker, this 
+Docker containers are a widespread technology that allows us to deploy applications easily and consistently on various hosts. It isolates the application from the OS and runs it on a bare-bones virtual OS. This ensures that no matter where you run the application, it's running with the same environment and configurations that you define. This makes it a lot easier to run applications on various hosts. I really enjoyed diving under the hood of containers and seeing what kernel features make this technology possible. There's more to learn in terms of containers, but I think I now feel more comfortable utilizing containers myself.
